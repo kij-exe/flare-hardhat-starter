@@ -64,7 +64,6 @@ contract OIBetShowcase is Ownable {
 
     struct Event {
         uint256 uid;
-        //string title;
         string home_team;
         string away_team;
         uint256 startTime;
@@ -73,17 +72,19 @@ contract OIBetShowcase is Ownable {
         //bool cancelled;
         Choices[] choices;
     }
-    
-    struct EventTransportObject {
-        uint256 uid;
-        //string title;
+
+    struct EventTransportObject1 {
+        string strUid;
+        uint256 startTime;
         string home_team;
         string away_team;
-        uint256 startTime;
-        uint256 poolAmount;
-        uint16 winner;
-        //bool cancelled;
-        Choices[] choices;
+    }
+    
+    struct EventTransportObject2 {
+        string strUid;
+        uint8 score_home_team;
+        uint8 score_away_team;
+        string match_status;
     }
 
     struct Choices {
@@ -103,8 +104,6 @@ contract OIBetShowcase is Ownable {
         uint16 betChoice;
         bool claimed;
     }
-
-    
 
     mapping(uint256 => Event) public events;
     //mapping(uint256 => bool) public eventRefund; // is event in refund state
@@ -136,42 +135,28 @@ contract OIBetShowcase is Ownable {
         IJsonApi.Proof calldata data
     ) external onlyAuthorized() {
         require(isJsonApiProofValid(data), "Invalid proof");
-        EventTransportObject memory dto = abi.decode(
+        EventTransportObject1 memory dto = abi.decode(
             data.data.responseBody.abi_encoded_data,
-            (EventTransportObject)
+            (EventTransportObject1)
         );
 
+        _createEvent(
+            dto.home_team,
+            dto.away_team,
+            dto.startTime,
+            ["home_team", "draw", "away_team"],
+            [333, 334, 333],
+            1000,
+            stringToUint256(dto.strUid)
+        );
     }
 
-    // function createEvent(
-    //     string memory title,
-    //     string memory home_team,
-    //     string memory away_team,
-    //     uint256 startTime,
-    //     string[] memory choices,
-    //     uint32[] memory initialVotes,
-    //     uint256 initialPool,
-    //     uint256 _uid
-    // ) external onlyAuthorized() {
-    //     _createEvent(
-    //         title,
-    //         home_team,
-    //         away_team,
-    //         startTime,
-    //         choices,
-    //         initialVotes,
-    //         initialPool,
-    //         _uid
-    //     );
-    // }
-
 function _createEvent(
-        string memory title,
         string memory home_team,
         string memory away_team,
         uint256 startTime,
-        string[] memory choices,
-        uint32[] memory initialVotes,
+        string[3] memory choices,
+        uint16[3] memory initialVotes,
         uint256 initialPool,
         uint256 uid
     ) internal {
@@ -228,8 +213,6 @@ function _createEvent(
         }
 
         emit EventCreated(uid, ev.home_team, ev.away_team, ev.startTime);
-
-
     }
 
     // function generateUID(
@@ -564,6 +547,10 @@ function _createEvent(
     // ) public pure returns (bool) {
     //     return resultHash == keccak256(abi.encodePacked(uid, requestNumber, result));
     // }
+
+    function stringToUint256(string memory _uid) public pure returns (uint256) {
+        return uint256(keccak256(abi.encodePacked(_uid)));
+    }
 
     //function finalizeMatch(MatchResult.Proof calldata proof) external {
     //    // Check with state connector
