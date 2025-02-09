@@ -10,8 +10,8 @@ async function main() {
         //"0x97C72b91F953cC6142ebA598fa376B80fbACA1C2" // songbird MatchResultVerification
     ]
     
-    const flareBetContract = await ethers.deployContract("BetContract", args);
-    console.log("BetContract deployed to:", flareBetContract.target);
+    const betContract = await ethers.deployContract("BetContract", args);
+    console.log("BetContract deployed to:", betContract.target);
 
     console.log("Sleep for 30 sec...");
     await new Promise(r => setTimeout(r, 30000));
@@ -20,7 +20,7 @@ async function main() {
     try {
 
         const result = await run("verify:verify", {
-            address: flareBetContract.target,
+            address: betContract.target,
             constructorArguments: args,
         })
 
@@ -28,7 +28,7 @@ async function main() {
     } catch (e: any) {
         console.log(e.message)
     }
-    console.log("Deployed contract at:", flareBetContract.target)
+    console.log("Deployed contract at:", betContract.target)
 
 }
 main().then(() => process.exit(0))
