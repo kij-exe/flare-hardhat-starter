@@ -44,25 +44,25 @@ async function prepareRequest() {
         "attestationType": attestationType,
         "sourceId": sourceType,
         "requestBody": {
-            "url": "https://swapi.dev/api/people/3/",
-            "postprocessJq": `{
-                name: .name,
-                height: .height,
-                mass: .mass,
-                numberOfFilms: .films | length,
-                uid: (.url | split("/") | .[-2] | tonumber)
+            "url": "https://api.sportradar.com/soccer/trial/v4/en/schedules/2024-01-06/schedules.json?api_key=8xLd4xboCaPbIMNPZc8WGUze4ypfvxchX275wsIv",
+            
+            "postprocessJq": `{id: .schedules[0].sport_event.id, 
+            start_time: .schedules[0].sport_event.start_time, 
+            home_team: .schedules[0].sport_event.competitors[0].name, 
+            away_team: .schedules[0].sport_event.competitors[1].name
             }`,
-            "abi_signature": `
-            {\"components\": [
-                {\"internalType\": \"string\",\"name\": \"name\",\"type\": \"string\"},
-                {\"internalType\": \"uint256\",\"name\": \"height\",\"type\": \"uint256\"},
-                {\"internalType\": \"uint256\",\"name\": \"mass\",\"type\": \"uint256\"},
-                {\"internalType\": \"uint256\",\"name\": \"numberOfFilms\",\"type\": \"uint256\"},
-                {\"internalType\": \"uint256\",\"name\": \"uid\",\"type\": \"uint256\"}
-            ],
-            \"name\": \"task\",\"type\": \"tuple\"}`
+            "abi_signature": `{
+                \"components\": [
+                    {\"internalType\": \"string\", \"name\": \"id\", \"type\": \"string\"},
+                    {\"internalType\": \"string\", \"name\": \"start_time\", \"type\": \"string\"},
+                    {\"internalType\": \"string\", \"name\": \"home_team\", \"type\": \"string\"},
+                    {\"internalType\": \"string\", \"name\": \"away_team\", \"type\": \"string\"}
+                ],
+                \"name\": \"task\", \"type\": \"tuple\"
+            }`
         }
     };
+
 
     const response = await fetch(
         `${JQ_VERIFIER_URL_TESTNET}JsonApi/prepareRequest`,
@@ -117,13 +117,13 @@ async function submitRequest() {
     return roundId;
 }
 
-// submitRequest().then((data) => {
-//     console.log("Submitted request:", data);
-//     process.exit(0);
-// });
+submitRequest().then((data) => {
+    console.log("Submitted request:", data);
+    process.exit(0);
+});
 
 
-const TARGET_ROUND_ID = 894447; // 0
+const TARGET_ROUND_ID = 895847;//895834; // 0
 
 async function getProof(roundId: number) {
     const request = await prepareRequest();
