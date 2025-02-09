@@ -21,7 +21,9 @@ const TX_ID =
     "0xae295f8075754f795142e3238afa132cd32930f871d21ccede22bbe80ae31f73";
 
 // const STAR_WARS_LIST_ADDRESS = "0xD7e76b28152aADC59D8C857a1645Ea1552F7f7fB"; // coston
-const STAR_WARS_LIST_ADDRESS = "0x4dF728C77e2944891C44937670fADDA310BFe5C7"; // coston2
+// const STAR_WARS_LIST_ADDRESS = "0x4dF728C77e2944891C44937670fADDA310BFe5C7"; // coston2
+const STAR_WARS_LIST_ADDRESS = "0xb172c070B9a163775BD67354acd3985c94F52000"; // redeployed on Mykyta's PC on coston
+
 
 async function deployMainList() {
     const list: BetContractInstance = await BetContractList.new();
@@ -42,30 +44,99 @@ async function deployMainList() {
 async function prepareRequest() {
     const attestationType = "0x" + toHex("IJsonApi");
     const sourceType = "0x" + toHex("WEB2");
+    // const requestData = {
+    //     "attestationType": attestationType,
+    //     "sourceId": sourceType,
+    //     "requestBody": {
+    //         "url": "https://api.sportradar.com/soccer/trial/v4/en/schedules/2024-01-06/schedules.json?api_key=8xLd4xboCaPbIMNPZc8WGUze4ypfvxchX275wsIv",
+    //         "postprocessJq": `{
+    //             strUid: .name
+    //         }`,
+    //         "abi_signature": `
+    //         {\"components\": [
+    //             {\"internalType\": \"string\", \"name\": \"strUid\", \"type\": \"string\"}
+    //         ],
+    //         "name": "SportEvent", "type": "tuple"}`
+    //     }
+    // };
+
     const requestData = {
         "attestationType": attestationType,
         "sourceId": sourceType,
         "requestBody": {
             "url": "https://api.sportradar.com/soccer/trial/v4/en/schedules/2024-01-06/schedules.json?api_key=8xLd4xboCaPbIMNPZc8WGUze4ypfvxchX275wsIv",
-            
             "postprocessJq": `{
-             strUid: .schedules[0].sport_event.id,
-             score_home_team: .schedules[0].sport_event_status.home_score,
-             score_away_team: .schedules[0].sport_event_status.away_score,
-             match_status: .schedules[0].sport_event_status.match_status
+                name: .name,
+                height: .height,
+                mass: .mass,
+                numberOfFilms: .films | length,
+                uid: (.url | split("/") | .[-2] | tonumber)
             }`,
-            "abi_signature": `{
-                \"components\": [
-                    {\"internalType\": \"string\", \"name\": \"strUid\", \"type\": \"string\" },
-                    {\"internalType\": \"uint8\", \"name\": \"score_home_team\", \"type\": \"uint8\" },
-                    {\"internalType\": \"uint8\", \"name\": \"score_away_team\", \"type\": \"uint8\" },
-                    {\"internalType\": \"string\", \"name\": \"match_status\", \"type\": \"string\" }
-                ],
-                "name": "SportEvent", "type": "tuple"
-            }`
+            "abi_signature": `
+            {\"components\": [
+                {\"internalType\": \"string\",\"name\": \"name\",\"type\": \"string\"},
+                {\"internalType\": \"uint256\",\"name\": \"height\",\"type\": \"uint256\"},
+                {\"internalType\": \"uint256\",\"name\": \"mass\",\"type\": \"uint256\"},
+                {\"internalType\": \"uint256\",\"name\": \"numberOfFilms\",\"type\": \"uint256\"},
+                {\"internalType\": \"uint256\",\"name\": \"uid\",\"type\": \"uint256\"}
+            ],
+            \"name\": \"task\",\"type\": \"tuple\"}`
         }
     };
 
+// async function prepareRequest() {
+//     const attestationType = "0x" + toHex("IJsonApi");
+//     const sourceType = "0x" + toHex("WEB2");
+//     const requestData = {
+//         "attestationType": attestationType,
+//         "sourceId": sourceType,
+//         "requestBody": {
+//             "url": "https://api.sportradar.com/soccer/trial/v4/en/schedules/2024-01-06/schedules.json?api_key=8xLd4xboCaPbIMNPZc8WGUze4ypfvxchX275wsIv",
+            
+//             "postprocessJq": `{
+//                 strUid: .schedules[0].sport_event.id,
+//                 startTime: .schedules[0].sport_event.start_time | sub("\\+[0-9][0-9]:[0-9][0-9]$"; "Z")| strptime("%Y-%m-%dT%H:%M:%SZ") | mktime,
+//                 home_team: .schedules[0].sport_event.competitors[0].name,
+//                 away_team: .schedules[0].sport_event.competitors[1].name,
+//               }`,
+//             "abi_signature": `{
+//                 \"components\": [
+//                     {\"internalType\": \"string\", \"name\": \"strUid\", \"type\": \"string\" },
+//                     {\"internalType\": \"uint256\", \"name\": \"startTime\", \"type\": \"uint256\" },
+//                     {\"internalType\": \"string\", \"name\": \"home_team\", \"type\": \"string\" },
+//                     {\"internalType\": \"string\", \"name\": \"away_team\", \"type\": \"string\" }
+//                 ],
+//                 "name": "SportEvent", "type": "tuple"
+//             }`
+//         }
+//     };
+
+    console.log("REquest data: " + JSON.stringify(requestData))
+
+    // API CALL FOR TransportObject2 
+    // const requestData = {
+    //     "attestationType": attestationType,
+    //     "sourceId": sourceType,
+    //     "requestBody": {
+    //         "url": "https://api.sportradar.com/soccer/trial/v4/en/schedules/2024-01-06/schedules.json?api_key=8xLd4xboCaPbIMNPZc8WGUze4ypfvxchX275wsIv",
+            
+    //         "postprocessJq": `{
+    //          strUid: .schedules[0].sport_event.id,
+    //          score_home_team: .schedules[0].sport_event_status.home_score,
+    //          score_away_team: .schedules[0].sport_event_status.away_score,
+    //          match_status: .schedules[0].sport_event_status.match_status
+    //         }`,
+    //         "abi_signature": `{
+    //             \"components\": [
+    //                 {\"internalType\": \"string\", \"name\": \"strUid\", \"type\": \"string\" },
+    //                 {\"internalType\": \"uint8\", \"name\": \"score_home_team\", \"type\": \"uint8\" },
+    //                 {\"internalType\": \"uint8\", \"name\": \"score_away_team\", \"type\": \"uint8\" },
+    //                 {\"internalType\": \"string\", \"name\": \"match_status\", \"type\": \"string\" }
+    //             ],
+    //             "name": "SportEvent", "type": "tuple"
+    //         }`
+    //     }
+    // };
 
     const response = await fetch(
         `${JQ_VERIFIER_URL_TESTNET}JsonApi/prepareRequest`,
@@ -94,6 +165,7 @@ const votingEpochDurationSeconds = 90;
 
 async function submitRequest() {
     const requestData = await prepareRequest();
+    console.log(requestData)
 
     const starWarsList: BetContractInstance = await BetContractList.at(STAR_WARS_LIST_ADDRESS);
 
@@ -104,7 +176,7 @@ async function submitRequest() {
     const tx = await fdcHUB.requestAttestation(requestData.abiEncodedRequest, {
         value: ethers.parseEther("1").toString(),
     });
-    console.log("Submitted request:", tx.tx);
+    // console.log("Submitted request:", tx.tx);
 
     // Get block number of the block containing contract call
     const blockNumber = tx.blockNumber;
@@ -124,7 +196,6 @@ submitRequest().then((data) => {
     console.log("Submitted request:", data);
     process.exit(0);
 });
-///////////////// HHHUUUIII
 
 const TARGET_ROUND_ID = 896134; //895847;//895834; // 0
 
@@ -148,14 +219,14 @@ async function getProof(roundId: number) {
     return await proofAndData.json();
 }
 
-getProof(TARGET_ROUND_ID)
-    .then((data) => {
-        console.log("Proof and data:");
-        console.log(JSON.stringify(data, undefined, 2));
-    })
-    .catch((e) => {
-        console.error(e);
-    });
+// getProof(TARGET_ROUND_ID)
+//     .then((data) => {
+//         console.log("Proof and data:");
+//         console.log(JSON.stringify(data, undefined, 2));
+//     })
+//     .catch((e) => {
+//         console.error(e);
+//     });
 
 
 async function submitProof() {
@@ -173,11 +244,11 @@ async function submitProof() {
 }
 
 
-submitProof()
-    .then((data) => {
-        console.log("Submitted proof");
-        process.exit(0);
-    })
-    .catch((e) => {
-        console.error(e);
-    });
+// submitProof()
+//     .then((data) => {
+//         console.log("Submitted proof");
+//         process.exit(0);
+//     })
+//     .catch((e) => {
+//         console.error(e);
+//     });

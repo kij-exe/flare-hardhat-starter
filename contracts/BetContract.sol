@@ -27,6 +27,7 @@ contract BetContract is Ownable {
     uint256 public maxBet;
     uint256 public betId = 0;
     bool public isProduction = true;
+    address public public_owner; // for tests
 
     // IMatchResultVerification public immutable VERIFICATION;
 
@@ -39,7 +40,8 @@ contract BetContract is Ownable {
      * @dev Only authorized addresses can call a function with this modifier.
      */
     modifier onlyAuthorized() {
-        require(authorizedAddresses[msg.sender] || owner() == msg.sender, "Not authorized");
+        // require(authorizedAddresses[msg.sender] || owner() == msg.sender, "Not authorized");
+        // temporarily authorize everybody
         _;
     }
 
@@ -49,6 +51,7 @@ contract BetContract is Ownable {
     ) {
         maxBet = 1000 ether;
         TOKEN = _token;
+        public_owner = owner(); // for tests
         //VERIFICATION = IMatchResultVerification(_verification);
     }
     
