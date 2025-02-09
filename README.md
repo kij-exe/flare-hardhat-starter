@@ -1,6 +1,11 @@
-## If you are from the eth-global/encode hackathon https://github.com/flare-foundation/flare-hardhat-starter/tree/encode-hackathon is the branch you look for
+## Decentralised FDC-based betting platform (prediction market built on flare network)
 
-## Flare Hardhat Starter Kit
+## Motivation:
+Prediction market such as polymarket, Gnosis is on a trends however, the the transactions executed on these betting markets can have some risks. Flare network provide a trustless API usage which allows web2 data to be processed on-chain. Such an architecture will innovate the state of the prediction market. 
+
+## Project Detail:
+The project will first take a data by using API provided by sporttrader(link: https://developer.sportradar.com/). Then the json formatted data will be processed and will invoke a function that will create a market on flare network. Users will place bets in a market and the money used will be stored on a liquidity pool. The program will call API request at regular interval and will identify whether an event is ended or not. When the event is finished then the market will automatically be closed.  
+The project intends to convert a web2 information into a data in which we can use it on-chain and will determine the 
 
 **IMPORTANT!!**
 The supporting library uses Openzeppelin version `4.9.3`, be careful to use the documentation and examples from that library version.
