@@ -2,6 +2,15 @@
 // Compatible with OpenZeppelin Contracts ^5.0.0
 pragma solidity ^0.8.20;
 
+import {ContractRegistry} from "@flarenetwork/flare-periphery-contracts/coston/ContractRegistry.sol";
+
+// Dummy import to get artifacts for IFDCHub
+import {IFdcHub} from "@flarenetwork/flare-periphery-contracts/coston/IFdcHub.sol";
+import {IFdcRequestFeeConfigurations} from "@flarenetwork/flare-periphery-contracts/coston/IFdcRequestFeeConfigurations.sol";
+
+import {IJsonApiVerification} from "@flarenetwork/flare-periphery-contracts/coston/IJsonApiVerification.sol";
+import {IJsonApi} from "@flarenetwork/flare-periphery-contracts/coston/IJsonApi.sol";
+
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -42,8 +51,30 @@ contract OIBetShowcase is Ownable {
         TOKEN = _token;
         //VERIFICATION = IMatchResultVerification(_verification);
     }
+    
+    function isJsonApiProofValid(
+        IJsonApi.Proof calldata _proof
+    ) public view returns (bool) {
+        // Inline the check for now until we have an official contract deployed
+        return
+            ContractRegistry.auxiliaryGetIJsonApiVerification().verifyJsonApi(
+                _proof
+            );
+    }
 
     struct Event {
+        bytes32 uid;
+        //string title;
+        string home_team;
+        string away_team;
+        uint256 startTime;
+        uint256 poolAmount;
+        uint16 winner;
+        //bool cancelled;
+        Choices[] choices;
+    }
+    
+    struct EventTransportObject {
         bytes32 uid;
         //string title;
         string home_team;
@@ -100,28 +131,39 @@ contract OIBetShowcase is Ownable {
     event BetSettled(bytes32 eventUID, uint32 winner, uint256 winMultiplier);
     
     //event BetRefunded(bytes32 eventUID);
-
+    
     function createEvent(
-        string memory title,
-        string memory home_team,
-        string memory away_team,
-        uint256 startTime,
-        string[] memory choices,
-        uint32[] memory initialVotes,
-        uint256 initialPool,
-        bytes32 _uid
+        IJsonApi.Proof calldata data
     ) external onlyAuthorized() {
-        _createEvent(
-            title,
-            home_team,
-            away_team,
-            startTime,
-            choices,
-            initialVotes,
-            initialPool,
-            _uid
+        require(isJsonApiProofValid(data), "Invalid proof");
+        EventTransportObject memory dto = abi.decode(
+            data.data.responseBody.abi_encoded_data,
+            (EventTransportObject)
         );
+
     }
+
+    // function createEvent(
+    //     string memory title,
+    //     string memory home_team,
+    //     string memory away_team,
+    //     uint256 startTime,
+    //     string[] memory choices,
+    //     uint32[] memory initialVotes,
+    //     uint256 initialPool,
+    //     bytes32 _uid
+    // ) external onlyAuthorized() {
+    //     _createEvent(
+    //         title,
+    //         home_team,
+    //         away_team,
+    //         startTime,
+    //         choices,
+    //         initialVotes,
+    //         initialPool,
+    //         _uid
+    //     );
+    // }
 
 function _createEvent(
         string memory title,
@@ -131,10 +173,10 @@ function _createEvent(
         string[] memory choices,
         uint32[] memory initialVotes,
         uint256 initialPool,
-        bytes32 _uid
+        bytes32 uid
     ) internal {
-        bytes32 uid = generateUID(startTime, home_team, away_team);
-        require(uid == _uid, "UID mismatch");
+        // bytes32 uid = generateUID(startTime, home_team, away_team);
+        // require(uid == _uid, "UID mismatch");
         require(events[uid].uid == 0, "Event already exists");
 
         require(
@@ -190,13 +232,13 @@ function _createEvent(
 
     }
 
-    function generateUID(
-        uint256 startTime,
-        string memory home_team,
-        string memory away_team
-    ) public pure returns (bytes32) {
-        return keccak256(abi.encode(startTime, home_team, away_team));
-    }
+    // function generateUID(
+    //     uint256 startTime,
+    //     string memory home_team,
+    //     string memory away_team
+    // ) public pure returns (bytes32) {
+    //     return keccak256(abi.encode(startTime, home_team, away_team));
+    // }
 
     function calculateInitialBetAmount(
         uint256 initialPool,
