@@ -15,7 +15,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract OIBetShowcase is Ownable {
+contract BetContract is Ownable {
     using SafeERC20 for IERC20;
 
     uint256 public constant DAY = 86400;
@@ -44,8 +44,8 @@ contract OIBetShowcase is Ownable {
     }
 
     constructor(
-        IERC20 _token,
-        address _verification
+        IERC20 _token
+        //address _verification
     ) {
         maxBet = 1000 ether;
         TOKEN = _token;
@@ -600,6 +600,18 @@ function _createEvent(
         onlyOwner()
     {
         authorizedAddresses[addr] = isAuthorized;
+    }
+
+    function getFdcHub() external view returns (IFdcHub) {
+        return ContractRegistry.getFdcHub();
+    }
+
+    function getFdcRequestFeeConfigurations()
+        external
+        view
+        returns (IFdcRequestFeeConfigurations)
+    {
+        return ContractRegistry.getFdcRequestFeeConfigurations();
     }
 
 }

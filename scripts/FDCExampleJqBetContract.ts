@@ -1,7 +1,9 @@
 import { artifacts, ethers, run } from "hardhat";
-import { StarWarsCharacterListInstance } from "../typechain-types";
+import { BetContractListInstance, BetContractInstance } from "../typechain-types";
 
-const StarWarsCharacterList = artifacts.require("StarWarsCharacterList");
+const BetContractList = artifacts.require("BetContract");
+
+
 const FDCHub = artifacts.require("@flarenetwork/flare-periphery-contracts/coston/IFdcHub.sol:IFdcHub");
 
 // Simple hex encoding
@@ -19,10 +21,10 @@ const TX_ID =
     "0xae295f8075754f795142e3238afa132cd32930f871d21ccede22bbe80ae31f73";
 
 // const STAR_WARS_LIST_ADDRESS = "0xD7e76b28152aADC59D8C857a1645Ea1552F7f7fB"; // coston
-const STAR_WARS_LIST_ADDRESS = "0x531B6E1e924aa8b431D1cacF517468DF2c3faa4F"; // coston2
+const STAR_WARS_LIST_ADDRESS = "0x4dF728C77e2944891C44937670fADDA310BFe5C7"; // coston2
 
 async function deployMainList() {
-    const list: StarWarsCharacterListInstance = await StarWarsCharacterList.new();
+    const list: BetContractInstance = await BetContractList.new();
 
     console.log("Char list deployed at:", list.address);
     // verify 
@@ -47,17 +49,17 @@ async function prepareRequest() {
             "url": "https://api.sportradar.com/soccer/trial/v4/en/schedules/2024-01-06/schedules.json?api_key=8xLd4xboCaPbIMNPZc8WGUze4ypfvxchX275wsIv",
             
             "postprocessJq": `{
-              strUid: .schedules[0].sport_event.id,
-              startTime: .schedules[0].sport_event.start_time | sub("\\+[0-9][0-9]:[0-9][0-9]$"; "Z")| strptime("%Y-%m-%dT%H:%M:%SZ") | mktime,
-              home_team: .schedules[0].sport_event.competitors[0].name,
-              away_team: .schedules[0].sport_event.competitors[1].name,
+             strUid: .schedules[0].sport_event.id,
+             score_home_team: .schedules[0].sport_event_status.home_score,
+             score_away_team: .schedules[0].sport_event_status.away_score,
+             match_status: .schedules[0].sport_event_status.match_status
             }`,
             "abi_signature": `{
                 \"components\": [
                     {\"internalType\": \"string\", \"name\": \"strUid\", \"type\": \"string\" },
-                    {\"internalType\": \"uint256\", \"name\": \"startTime\", \"type\": \"uint256\" },
-                    {\"internalType\": \"string\", \"name\": \"home_team\", \"type\": \"string\" },
-                    {\"internalType\": \"string\", \"name\": \"away_team\", \"type\": \"string\" }
+                    {\"internalType\": \"uint8\", \"name\": \"score_home_team\", \"type\": \"uint8\" },
+                    {\"internalType\": \"uint8\", \"name\": \"score_away_team\", \"type\": \"uint8\" },
+                    {\"internalType\": \"string\", \"name\": \"match_status\", \"type\": \"string\" }
                 ],
                 "name": "SportEvent", "type": "tuple"
             }`
@@ -87,13 +89,13 @@ async function prepareRequest() {
 //     process.exit(0);
 // });
 
-const firstVotingRoundStartTs = 1658429955;
+const firstVotingRoundStartTs = 1658423000;//9955;
 const votingEpochDurationSeconds = 90;
 
 async function submitRequest() {
     const requestData = await prepareRequest();
 
-    const starWarsList: StarWarsCharacterListInstance = await StarWarsCharacterList.at(STAR_WARS_LIST_ADDRESS);
+    const starWarsList: BetContractInstance = await BetContractList.at(STAR_WARS_LIST_ADDRESS);
 
 
     const fdcHUB = await FDCHub.at(await starWarsList.getFdcHub());
@@ -122,9 +124,9 @@ submitRequest().then((data) => {
     console.log("Submitted request:", data);
     process.exit(0);
 });
+///////////////// HHHUUUIII
 
-
-const TARGET_ROUND_ID = 896166;//895834; // 0
+const TARGET_ROUND_ID = 896134; //895847;//895834; // 0
 
 async function getProof(roundId: number) {
     const request = await prepareRequest();
@@ -146,27 +148,28 @@ async function getProof(roundId: number) {
     return await proofAndData.json();
 }
 
-// getProof(TARGET_ROUND_ID)
-//     .then((data) => {
-//         console.log("Proof and data:");
-//         console.log(JSON.stringify(data, undefined, 2));
-//     })
-//     .catch((e) => {
-//         console.error(e);
-//     });
+getProof(TARGET_ROUND_ID)
+    .then((data) => {
+        console.log("Proof and data:");
+        console.log(JSON.stringify(data, undefined, 2));
+    })
+    .catch((e) => {
+        console.error(e);
+    });
 
 
 async function submitProof() {
     const dataAndProof = await getProof(TARGET_ROUND_ID);
-    console.log(dataAndProof);
-    const starWarsList = await StarWarsCharacterList.at(STAR_WARS_LIST_ADDRESS);
 
-    const tx = await starWarsList.addCharacter({
+    console.log("DATA AND PROOF", dataAndProof);
+    const starWarsList = await BetContractList.at(STAR_WARS_LIST_ADDRESS);
+
+    const tx = await starWarsList.createEvent({
         merkleProof: dataAndProof.proof,
         data: dataAndProof.response,
     });
     console.log(tx.tx);
-    console.log(await starWarsList.getAllCharacters());
+    //console.log(await starWarsList.getAllCharacters());
 }
 
 
