@@ -4,7 +4,7 @@
         {
             "sport_event": {
                 "id": "sr:sport_event:46203263",
-                "start_time": "2024-01-06T00:30:00+00:00",
+                "start_time": 1704501000,
                 "start_time_confirmed": true,
                 "sport_event_context": {
                     "sport": {
