@@ -63,7 +63,7 @@ contract OIBetShowcase is Ownable {
     }
 
     struct Event {
-        bytes32 uid;
+        uint256 uid;
         //string title;
         string home_team;
         string away_team;
@@ -75,7 +75,7 @@ contract OIBetShowcase is Ownable {
     }
     
     struct EventTransportObject {
-        bytes32 uid;
+        uint256 uid;
         //string title;
         string home_team;
         string away_team;
@@ -95,7 +95,7 @@ contract OIBetShowcase is Ownable {
 
     struct Bet {
         uint256 id;
-        bytes32 eventUID;
+        uint256 eventUID;
         address bettor;
         uint256 betAmount;
         uint256 winMultiplier;
@@ -106,31 +106,31 @@ contract OIBetShowcase is Ownable {
 
     
 
-    mapping(bytes32 => Event) public events;
-    //mapping(bytes32 => bool) public eventRefund; // is event in refund state
-    //mapping(Sports => bytes32[]) public sportEventsBySport;
-    //mapping(uint256 => mapping(Sports => bytes32[]))
+    mapping(uint256 => Event) public events;
+    //mapping(uint256 => bool) public eventRefund; // is event in refund state
+    //mapping(Sports => uint256[]) public sportEventsBySport;
+    //mapping(uint256 => mapping(Sports => uint256[]))
     //    public sportEventsByDateAndSport;
-    mapping(uint256 => bytes32[]) public eventsByDate;
+    mapping(uint256 => uint256[]) public eventsByDate;
     mapping(uint256 => uint256[]) public betsByEventStartDate;
     mapping(uint256 => mapping(address => uint256[])) public betsByDateAndUser;
-    mapping(bytes32 => uint256[]) public betsByEvent;
+    mapping(uint256 => uint256[]) public betsByEvent;
     mapping(address => uint256[]) public betsByUser;
     mapping(uint256 => Bet) public betById;
 
-    event EventCreated(bytes32 uid, string home_time, string away_team, uint256 startTime);
+    event EventCreated(uint256 uid, string home_time, string away_team, uint256 startTime);
 
     event BetPlaced(
         uint256 id,
-        bytes32 eventUID,
+        uint256 eventUID,
         address bettor,
         uint256 amount,
         uint16 choice
     );
 
-    event BetSettled(bytes32 eventUID, uint32 winner, uint256 winMultiplier);
+    event BetSettled(uint256 eventUID, uint32 winner, uint256 winMultiplier);
     
-    //event BetRefunded(bytes32 eventUID);
+    //event BetRefunded(uint256 eventUID);
     
     function createEvent(
         IJsonApi.Proof calldata data
@@ -151,7 +151,7 @@ contract OIBetShowcase is Ownable {
     //     string[] memory choices,
     //     uint32[] memory initialVotes,
     //     uint256 initialPool,
-    //     bytes32 _uid
+    //     uint256 _uid
     // ) external onlyAuthorized() {
     //     _createEvent(
     //         title,
@@ -173,9 +173,9 @@ function _createEvent(
         string[] memory choices,
         uint32[] memory initialVotes,
         uint256 initialPool,
-        bytes32 uid
+        uint256 uid
     ) internal {
-        // bytes32 uid = generateUID(startTime, home_team, away_team);
+        // uint256 uid = generateUID(startTime, home_team, away_team);
         // require(uid == _uid, "UID mismatch");
         require(events[uid].uid == 0, "Event already exists");
 
@@ -236,7 +236,7 @@ function _createEvent(
     //     uint256 startTime,
     //     string memory home_team,
     //     string memory away_team
-    // ) public pure returns (bytes32) {
+    // ) public pure returns (uint256) {
     //     return keccak256(abi.encode(startTime, home_team, away_team));
     // }
 
@@ -265,14 +265,14 @@ function _createEvent(
         return multiplier;
     }
 
-    //function cancelSportEvent(bytes32 _uid) external onlyAuthorized() {
+    //function cancelSportEvent(uint256 _uid) external onlyAuthorized() {
     //    Event storage ev = events[_uid];
     //    require(ev.uid != 0, "Event does not exist");
     //    require(ev.winner == 0, "Result already drawn");
     //    ev.cancelled = true;
     //}
 
-    // function getEventFromUID(bytes32 uid) external view returns (Event memory) {
+    // function getEventFromUID(uint256 uid) external view returns (Event memory) {
     //     return events[uid];
     // }
 
@@ -288,7 +288,7 @@ function _createEvent(
     //     return _events;
     // }
 
-    function placeBet(bytes32 eventUID, uint16 choice, uint256 amount) external {
+    function placeBet(uint256 eventUID, uint16 choice, uint256 amount) external {
         require(amount <= maxBet, "Bet amount exceeds max bet");
         require(amount > 0, "Bet amount must be greater than 0");
 
@@ -422,14 +422,14 @@ function _createEvent(
     /**
      * @dev Events specific choice data
      */
-    function getEventChoiceData(bytes32 uuid, uint32 _choice) external view returns (Choices memory) {
-        return events[uuid].choices[_choice];
+    function getEventChoiceData(uint256 uid, uint32 _choice) external view returns (Choices memory) {
+        return events[uid].choices[_choice];
     }
 
     /**
      * @dev Events by uids
      */
-    function getEvents(bytes32[] memory uids) external view returns (Event[] memory) {
+    function getEvents(uint256[] memory uids) external view returns (Event[] memory) {
         Event[] memory _events = new Event[](uids.length);
         
         for (uint256 i = 0; i < uids.length; i++) {
@@ -461,10 +461,10 @@ function _createEvent(
     /**
      * @dev Bets by event
      */
-    function getBetsByEvent(bytes32 uuid) external view returns (Bet[] memory) {
-        Bet[] memory bets = new Bet[](betsByEvent[uuid].length);
-        for (uint256 i = 0; i < betsByEvent[uuid].length; i++) {
-            bets[i] = betById[betsByEvent[uuid][i]];
+    function getBetsByEvent(uint256 uid) external view returns (Bet[] memory) {
+        Bet[] memory bets = new Bet[](betsByEvent[uid].length);
+        for (uint256 i = 0; i < betsByEvent[uid].length; i++) {
+            bets[i] = betById[betsByEvent[uid][i]];
         }
         return bets;
     }
@@ -535,7 +535,7 @@ function _createEvent(
     function calculateAproximateBetReturn(
         uint256 amount,
         uint32 choiceId,
-        bytes32 eventUID
+        uint256 eventUID
     ) public view returns (uint256) {
         Event storage currentEvent = events[eventUID];
         require(currentEvent.uid != 0, "Event does not exist");
@@ -556,14 +556,14 @@ function _createEvent(
     }
 
 
-    function checkResultHash(
-        uint8 result,
-        uint256 requestNumber,
-        bytes32 uid,
-        bytes32 resultHash
-    ) public pure returns (bool) {
-        return resultHash == keccak256(abi.encodePacked(uid, requestNumber, result));
-    }
+    // function checkResultHash(
+    //     uint8 result,
+    //     uint256 requestNumber,
+    //     uint256 uid,
+    //     uint256 resultHash
+    // ) public pure returns (bool) {
+    //     return resultHash == keccak256(abi.encodePacked(uid, requestNumber, result));
+    // }
 
     //function finalizeMatch(MatchResult.Proof calldata proof) external {
     //    // Check with state connector
@@ -572,7 +572,7 @@ function _createEvent(
     //        "MatchResult is not confirmed by the State Connector"
     //    );
     //
-    //    bytes32 uid = generateUID(
+    //    uint256 uid = generateUID(
     //        Sports(proof.data.requestBody.sport),
     //        proof.data.requestBody.gender,
     //        proof.data.requestBody.date,
