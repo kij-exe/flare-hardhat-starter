@@ -46,19 +46,20 @@ async function prepareRequest() {
         "requestBody": {
             "url": "https://api.sportradar.com/soccer/trial/v4/en/schedules/2024-01-06/schedules.json?api_key=8xLd4xboCaPbIMNPZc8WGUze4ypfvxchX275wsIv",
             
-            "postprocessJq": `{id: .schedules[0].sport_event.id, 
-            start_time: .schedules[0].sport_event.start_time, 
-            home_team: .schedules[0].sport_event.competitors[0].name, 
-            away_team: .schedules[0].sport_event.competitors[1].name
+            "postprocessJq": `{
+              strUid: .schedules[0].sport_event.id,
+              startTime: .schedules[0].sport_event.start_time | sub("\\+[0-9][0-9]:[0-9][0-9]$"; "Z")| strptime("%Y-%m-%dT%H:%M:%SZ") | mktime,
+              home_team: .schedules[0].sport_event.competitors[0].name,
+              away_team: .schedules[0].sport_event.competitors[1].name,
             }`,
             "abi_signature": `{
                 \"components\": [
-                    {\"internalType\": \"string\", \"name\": \"id\", \"type\": \"string\"},
-                    {\"internalType\": \"string\", \"name\": \"start_time\", \"type\": \"string\"},
-                    {\"internalType\": \"string\", \"name\": \"home_team\", \"type\": \"string\"},
-                    {\"internalType\": \"string\", \"name\": \"away_team\", \"type\": \"string\"}
+                    {\"internalType\": \"string\", \"name\": \"strUid\", \"type\": \"string\" },
+                    {\"internalType\": \"uint256\", \"name\": \"startTime\", \"type\": \"uint256\" },
+                    {\"internalType\": \"string\", \"name\": \"home_team\", \"type\": \"string\" },
+                    {\"internalType\": \"string\", \"name\": \"away_team\", \"type\": \"string\" }
                 ],
-                \"name\": \"task\", \"type\": \"tuple\"
+                "name": "SportEvent", "type": "tuple"
             }`
         }
     };
@@ -123,7 +124,7 @@ submitRequest().then((data) => {
 });
 
 
-const TARGET_ROUND_ID = 895847;//895834; // 0
+const TARGET_ROUND_ID = 896166;//895834; // 0
 
 async function getProof(roundId: number) {
     const request = await prepareRequest();
